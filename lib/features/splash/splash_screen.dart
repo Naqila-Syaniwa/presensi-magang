@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/core/app_routes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:presensimagang/core/app_prefs.dart';
 
 // STUB: diganti implementasi sebenarnya
 class SplashScreen extends StatefulWidget {
@@ -30,9 +32,9 @@ class _SplashScreenState extends State<SplashScreen>
     _fade = Tween<double>(begin: 0, end: 1).animate(curved);
     _scale = Tween<double>(begin: 0.8, end: 1).animate(curved);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _controller.forward();
-      }
+      if (!mounted) return;
+      _controller.forward();
+      _goNext();  
     });
   }
 
@@ -40,6 +42,17 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _goNext() async {
+    final seenFuture = AppPrefs.hasSeenOnboarding();
+    await Future<void>.delayed(const Duration(milliseconds: 2500));
+    final seen = await seenFuture;
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(
+      context,
+      seen ? AppRoutes.login : AppRoutes.onboarding,
+    );
   }
 
   @override
