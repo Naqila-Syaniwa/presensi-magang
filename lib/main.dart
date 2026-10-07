@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/core/app_theme.dart';
 import 'package:presensimagang/core/app_routes.dart';
 import 'package:presensimagang/features/auth/login_screen.dart';
 import 'package:presensimagang/features/home/home_screen.dart';
@@ -18,10 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Presensi Magang',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        scaffoldBackgroundColor: AppColors.background,
-      ),
+      theme: AppTheme.light,
       initialRoute: AppRoutes.splash,
       routes: {
         AppRoutes.splash: (_) => const SplashScreen(),
