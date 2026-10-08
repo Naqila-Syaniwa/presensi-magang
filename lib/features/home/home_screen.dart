@@ -1,27 +1,115 @@
 import 'package:flutter/material.dart';
+import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/home/widgets/announcement_section.dart';
-import 'package:presensimagang/features/home/widgets/clock_card.dart';
+import 'package:presensimagang/features/home/widgets/home_header.dart';
+import 'package:presensimagang/features/home/widgets/home_menu_grid.dart';
 
 // STUB: diganti implementasi sebenarnya
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _index = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.all(16),
-          children: [
-            Text('Home'),
-            SizedBox(height: 16),
-            ClockCard(),
-            SizedBox(height: 16),
-            AnnouncementSection(),
+        child: IndexedStack(
+          index: _index,
+          children: const [
+            _HomeTab(),
+            _PlaceholderTab(title: 'Employees'),
+            _PlaceholderTab(title: 'Request'),
+            _PlaceholderTab(title: 'Inbox'),
+            _PlaceholderTab(title: 'Account'),
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _index,
+        onTap: (i) => setState(() => _index = i),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            activeIcon: Icon(Icons.people),
+            label: 'Employees',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Request'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none),
+            activeIcon: Icon(Icons.notifications),
+            label: 'Inbox',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle_outlined),
+            activeIcon: Icon(Icons.account_circle),
+            label: 'Account',
+          ),
+        ],
+      ),
     );
+  }
+}
+
+class _HomeTab extends StatelessWidget {
+  const _HomeTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      children: const [
+        HomeHeader(),
+        SizedBox(height: 16),
+        HomeMenuGrid(),
+        SizedBox(height: 12),
+        _PromoBannerPlaceholder(),
+        SizedBox(height: 12),
+        AnnouncementSection(),
+      ],
+    );
+  }
+}
+
+class _PromoBannerPlaceholder extends StatelessWidget {
+  const _PromoBannerPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 100,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.primaryDark,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        'PromoBanner',
+        style: AppTextStyles.body.copyWith(color: AppColors.surface),
+      ),
+    );
+  }
+}
+
+class _PlaceholderTab extends StatelessWidget {
+  const _PlaceholderTab({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text(title, style: AppTextStyles.h2));
   }
 }
