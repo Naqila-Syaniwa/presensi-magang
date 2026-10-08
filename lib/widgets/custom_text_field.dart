@@ -25,6 +25,8 @@ class CustomTextField extends StatefulWidget {
     this.autovalidateMode,
     this.focusColor = AppColors.accent,
     this.borderRadius = 6,
+    this.focusNode,
+    this.scrollPadding = const EdgeInsets.all(24),
   });
 
   final TextEditingController controller;
@@ -44,6 +46,13 @@ class CustomTextField extends StatefulWidget {
   /// Warna border saat field fokus.
   final Color focusColor;
   final double borderRadius;
+
+  /// Untuk memindahkan fokus antar field secara eksplisit.
+  final FocusNode? focusNode;
+
+  /// Jarak minimum field dari tepi layar saat di-scroll otomatis ke atas
+  /// keyboard.
+  final EdgeInsets scrollPadding;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -76,6 +85,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
         const SizedBox(height: 8),
         TextFormField(
           controller: widget.controller,
+          focusNode: widget.focusNode,
+          scrollPadding: widget.scrollPadding,
           enabled: widget.enabled,
           obscureText: widget.isPassword && _obscure,
           keyboardType: widget.isPassword
@@ -97,7 +108,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             fillColor: AppColors.surface,
             hintStyle: const TextStyle(color: AppColors.textSecondary),
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             prefixIcon: widget.prefixIcon != null
                 ? Icon(widget.prefixIcon, color: AppColors.textSecondary)
                 : null,
