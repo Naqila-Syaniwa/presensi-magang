@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/app_routes.dart';
@@ -11,7 +9,6 @@ import 'package:presensimagang/widgets/custom_text_field.dart';
 const Color _kBlue = Color(0xFF0060C0);
 const Color _kLink = Color(0xFF1558D6);
 const Color _kPageBg = Color(0xFFF1F3F6);
-const Color _kLogoPurple = Color(0xFF5B2EF0);
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,20 +21,41 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+
   bool _isLoading = false;
+
+  /// Error baru tampil setelah user menekan Sign in; sesudah itu validasi
+  /// berjalan live supaya pesan hilang begitu input diperbaiki.
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
   /// Login dummy (tanpa backend): validasi, loading 1,5 detik, lalu ke Home.
   Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
+    if (_isLoading) return;
 
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
+      // Fokus ke field pertama yang bermasalah; field otomatis di-scroll
+      // ke atas keyboard.
+      if (Validators.email(_emailController.text) != null) {
+        _emailFocus.requestFocus();
+      } else {
+        _passwordFocus.requestFocus();
+      }
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
@@ -57,6 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kPageBg,
+      // Body menyusut saat keyboard muncul; isinya di-scroll (tanpa overflow).
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Sign In'),
         centerTitle: true,
@@ -71,119 +91,122 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
       body: SafeArea(
-        // Scroll agar tidak overflow saat keyboard muncul (LGN-06).
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 40, 16, 24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFE6E8EC)),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: _LoginLogo(),
-                      ),
-                      const SizedBox(height: 28),
-                      const Text(
-                        'Sign in',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
+        child: GestureDetector(
+          // Ketuk area kosong untuk menutup keyboard.
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(12, 60, 12, 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFE6E8EC)),
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: _autovalidateMode,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: _LoginLogo(),
                         ),
-                      ),
-                      const SizedBox(height: 28),
-                      CustomTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        focusColor: _kBlue,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
-                        enabled: !_isLoading,
-                        validator: Validators.email,
-                      ),
-                      const SizedBox(height: 20),
-                      CustomTextField(
-                        controller: _passwordController,
-                        label: 'Password',
-                        focusColor: _kBlue,
-                        isPassword: true,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.password],
-                        enabled: !_isLoading,
-                        onFieldSubmitted: (_) => _submit(),
-                        validator: Validators.password,
-                      ),
-                      const SizedBox(height: 28),
-                      CustomButton(
-                        label: 'Sign in',
-                        backgroundColor: _kBlue,
-                        fontWeight: FontWeight.w400,
-                        isLoading: _isLoading,
-                        onPressed: _submit,
-                      ),
-                      const SizedBox(height: 16),
-                      const _OrDivider(),
-                      const SizedBox(height: 16),
-                      CustomButton(
-                        label: 'Sign in dengan ID Karyawan',
-                        isOutlined: true,
-                        backgroundColor: _kLink,
-                        fontWeight: FontWeight.w400,
-                        onPressed: _isLoading
-                            ? null
-                            : () => _showUnavailable('Sign in dengan ID Karyawan'),
-                      ),
-                      const SizedBox(height: 12),
-                      CustomButton(
-                        label: 'Sign in dengan nomor telepon',
-                        isOutlined: true,
-                        backgroundColor: _kLink,
-                        fontWeight: FontWeight.w400,
-                        onPressed: _isLoading
-                            ? null
-                            : () =>
-                                _showUnavailable('Sign in dengan nomor telepon'),
-                      ),
-                      const SizedBox(height: 12),
-                      CustomButton(
-                        label: 'Sign in dengan SAML SSO',
-                        isOutlined: true,
-                        backgroundColor: _kLink,
-                        fontWeight: FontWeight.w400,
-                        onPressed: _isLoading
-                            ? null
-                            : () => _showUnavailable('Sign in dengan SAML SSO'),
-                      ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: TextButton(
+                        const SizedBox(height: 36),
+                        const Text(
+                          'Sign in',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        CustomTextField(
+                          controller: _emailController,
+                          focusNode: _emailFocus,
+                          label: 'Email',
+                          focusColor: _kBlue,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                          enabled: !_isLoading,
+                          onFieldSubmitted: (_) =>
+                              _passwordFocus.requestFocus(),
+                          validator: Validators.email,
+                        ),
+                        const SizedBox(height: 18),
+                        CustomTextField(
+                          controller: _passwordController,
+                          focusNode: _passwordFocus,
+                          label: 'Password',
+                          focusColor: _kBlue,
+                          isPassword: true,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          enabled: !_isLoading,
+                          onFieldSubmitted: (_) => _submit(),
+                          validator: Validators.password,
+                        ),
+                        const SizedBox(height: 40),
+                        CustomButton(
+                          label: 'Sign in',
+                          backgroundColor: _kBlue,
+                          fontWeight: FontWeight.w400,
+                          isLoading: _isLoading,
+                          onPressed: _submit,
+                        ),
+                        const SizedBox(height: 16),
+                        const _OrDivider(),
+                        const SizedBox(height: 16),
+                        _AltButton(
+                          label: 'Sign in dengan ID Karyawan',
                           onPressed: _isLoading
                               ? null
-                              : () => _showUnavailable('Fitur Lupa password'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: _kLink,
-                            minimumSize: const Size(48, 48),
-                          ),
-                          child: const Text(
-                            'Lupa password',
-                            style: TextStyle(fontSize: 15),
+                              : () => _showUnavailable(
+                                  'Sign in dengan ID Karyawan'),
+                        ),
+                        const SizedBox(height: 16),
+                        _AltButton(
+                          label: 'Sign in dengan nomor telepon',
+                          onPressed: _isLoading
+                              ? null
+                              : () => _showUnavailable(
+                                  'Sign in dengan nomor telepon'),
+                        ),
+                        const SizedBox(height: 16),
+                        _AltButton(
+                          label: 'Sign in dengan SAML SSO',
+                          onPressed: _isLoading
+                              ? null
+                              : () =>
+                                  _showUnavailable('Sign in dengan SAML SSO'),
+                        ),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: TextButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () => _showUnavailable('Fitur Lupa password'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: _kLink,
+                              minimumSize: const Size(48, 48),
+                            ),
+                            child: const Text(
+                              'Lupa password',
+                              style: TextStyle(fontSize: 15),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -191,6 +214,25 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Tombol alternatif berbingkai (ID Karyawan, nomor telepon, SAML SSO).
+class _AltButton extends StatelessWidget {
+  const _AltButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomButton(
+      label: label,
+      isOutlined: true,
+      backgroundColor: _kLink,
+      fontWeight: FontWeight.w400,
+      onPressed: onPressed,
     );
   }
 }
@@ -217,9 +259,7 @@ class _OrDivider extends StatelessWidget {
   }
 }
 
-/// Logo sementara: bintang ungu + wordmark "mekari account" (digambar
-/// dengan kode). Ganti dengan aset asli bila sudah ada, mis.
-/// `Image.asset('assets/images/logo.png', height: 56)`.
+/// Logo: gambar `assets/images/mekarisign.jpeg` + wordmark "mekari account".
 class _LoginLogo extends StatelessWidget {
   const _LoginLogo();
 
@@ -232,6 +272,12 @@ class _LoginLogo extends StatelessWidget {
           'assets/images/mekarisign.jpeg',
           width: 70,
           height: 70,
+          errorBuilder: (_, _, _) => const SizedBox(
+            width: 70,
+            height: 70,
+            child: Icon(Icons.image_not_supported_outlined,
+                color: Color(0xFF9A9A9F)),
+          ),
         ),
         const SizedBox(width: 5),
         const Column(
@@ -262,41 +308,4 @@ class _LoginLogo extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Bintang 6 sudut (3 batang membulat yang diputar 60°).
-class _StarPainter extends CustomPainter {
-  _StarPainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final center = size.center(Offset.zero);
-    final barLength = size.width;
-    final barThickness = size.width * 0.3;
-
-    for (var i = 0; i < 3; i++) {
-      canvas.save();
-      canvas.translate(center.dx, center.dy);
-      canvas.rotate(i * math.pi / 3 + math.pi / 6);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromCenter(
-            center: Offset.zero,
-            width: barLength,
-            height: barThickness,
-          ),
-          Radius.circular(barThickness / 2),
-        ),
-        paint,
-      );
-      canvas.restore();
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _StarPainter oldDelegate) =>
-      oldDelegate.color != color;
 }
