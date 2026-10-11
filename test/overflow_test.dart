@@ -83,7 +83,10 @@ void main() {
       testWidgets('Login saat keyboard muncul – $label', (tester) async {
         await _pump(tester, const LoginScreen(),
             size: entry.value, textScale: scale, keyboard: 280);
-        await tester.tap(find.byType(TextFormField).first);
+        final email = find.byType(TextFormField).first;
+        await tester.ensureVisible(email);
+        await tester.pump();
+        await tester.tap(email);
         await tester.pump();
         expect(tester.takeException(), isNull);
 

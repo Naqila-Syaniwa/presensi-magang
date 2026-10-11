@@ -72,7 +72,8 @@ class _AnnouncementSectionState extends State<AnnouncementSection> {
   /// Tinggi list mengikuti skala font sistem agar teks tidak overflow.
   double _listHeight(BuildContext context) {
     final scale = MediaQuery.textScalerOf(context).scale(1.0).clamp(1.0, 1.6);
-    return _imageHeight + 20 + 58 * scale;
+    // 2 (border) + 20 (padding) + 4 (jarak) + teks (judul 2 baris + tanggal)
+    return _imageHeight + 28 + 52 * scale;
   }
 
   @override
@@ -205,6 +206,7 @@ class _AnnouncementCard extends StatelessWidget {
                   dateText,
                   style: const TextStyle(
                     fontSize: 12,
+                    height: 1.2,
                     color: AppColors.textSecondary,
                   ),
                 ),

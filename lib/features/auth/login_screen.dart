@@ -260,6 +260,7 @@ class _OrDivider extends StatelessWidget {
 }
 
 /// Logo: gambar `assets/images/mekarisign.jpeg` + wordmark "mekari account".
+/// Wordmark menyusut otomatis (FittedBox) bila layar sempit atau font besar.
 class _LoginLogo extends StatelessWidget {
   const _LoginLogo();
 
@@ -280,30 +281,36 @@ class _LoginLogo extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 5),
-        const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'mekari',
-              style: TextStyle(
-                fontSize: 22,
-                height: 1.0,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF9A9A9F),
-              ),
+        const Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'mekari',
+                  style: TextStyle(
+                    fontSize: 22,
+                    height: 1.0,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF9A9A9F),
+                  ),
+                ),
+                Text(
+                  'account',
+                  style: TextStyle(
+                    fontSize: 38,
+                    height: 1.05,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              'account',
-              style: TextStyle(
-                fontSize: 38,
-                height: 1.05,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1,
-                color: Colors.black,
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
