@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/home/widgets/announcement_section.dart';
 import 'package:presensimagang/features/home/widgets/home_header.dart';
 import 'package:presensimagang/features/home/widgets/home_menu_grid.dart';
 import 'package:presensimagang/features/home/widgets/home_skeleton.dart';
+import 'package:presensimagang/features/home/widgets/promo_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
             activeIcon: Icon(Icons.people),
             label: 'Employees',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Request'),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications_none),
             activeIcon: Icon(Icons.notifications),
@@ -93,30 +92,10 @@ class _HomeTabState extends State<_HomeTab> {
           HomeMenuGrid(),
         ],
         const SizedBox(height: 12),
-        const _PromoBannerPlaceholder(),
+        const PromoBanner(),
         const SizedBox(height: 12),
         const AnnouncementSection(),
       ],
-    );
-  }
-}
-
-class _PromoBannerPlaceholder extends StatelessWidget {
-  const _PromoBannerPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.primaryDark,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        'PromoBanner',
-        style: AppTextStyles.body.copyWith(color: AppColors.surface),
-      ),
     );
   }
 }
