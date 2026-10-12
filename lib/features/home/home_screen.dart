@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
             activeIcon: Icon(Icons.people),
             label: 'Employees',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Request'),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications_none),
             activeIcon: Icon(Icons.notifications),
