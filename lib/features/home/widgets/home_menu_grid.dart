@@ -20,7 +20,7 @@ class HomeMenuGrid extends StatelessWidget {
             mainAxisExtent: 92,
           ),
           itemBuilder: (context, index) =>
-              _MenuTile(item: homeMenuItems[index]),
+              _MenuTile(item: homeMenuItems[index], showTopDivider: index >= 4),
         ),
       ),
     );
@@ -28,45 +28,54 @@ class HomeMenuGrid extends StatelessWidget {
 }
 
 class _MenuTile extends StatelessWidget {
-  const _MenuTile({required this.item});
+  const _MenuTile({required this.item, this.showTopDivider = false});
 
   final HomeMenuItem item;
+  final bool showTopDivider;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${item.label}: coming soon')));
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: item.color.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(12),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: showTopDivider
+            ? const Border(top: BorderSide(color: AppColors.border))
+            : null,
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${item.label}: coming soon')),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: item.color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(item.icon, color: item.color, size: 26),
               ),
-              child: Icon(item.icon, color: item.color, size: 26),
-            ),
-            const SizedBox(height: 8),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                item.label,
-                maxLines: 1,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textPrimary,
+              const SizedBox(height: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  item.label,
+                  maxLines: 1,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
