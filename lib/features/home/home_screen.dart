@@ -4,8 +4,7 @@ import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/home/widgets/announcement_section.dart';
 import 'package:presensimagang/features/home/widgets/home_header.dart';
 import 'package:presensimagang/features/home/widgets/home_menu_grid.dart';
-
-// STUB: diganti implementasi sebenarnya
+import 'package:presensimagang/features/home/widgets/home_skeleton.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -63,21 +62,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   const _HomeTab();
+
+  @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) setState(() => _loading = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      children: const [
-        HomeHeader(),
-        SizedBox(height: 16),
-        HomeMenuGrid(),
-        SizedBox(height: 12),
-        _PromoBannerPlaceholder(),
-        SizedBox(height: 12),
-        AnnouncementSection(),
+      children: [
+        if(_loading)
+          const HomeSkeleton()
+        else ...const [
+          HomeHeader(),
+          SizedBox(height: 16),
+          HomeMenuGrid(),
+        ],
+        const SizedBox(height: 12),
+        const _PromoBannerPlaceholder(),
+        const SizedBox(height: 12),
+        const AnnouncementSection(),
       ],
     );
   }
