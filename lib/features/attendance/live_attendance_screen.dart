@@ -80,7 +80,8 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
                               status: _store.statusOn(now),
                               statusText: _store.statusLabelOn(now),
                               onClockIn: () => _show(_store.clockIn()),
-                              onClockOut: () => _show(_store.clockOut()),
+                              onClockOut: (activityNote) =>
+                              _show(_store.clockOutWithNote(activityNote)),
                               onToggleBreak: () => _show(_store.toggleBreak()),
                             ),
                           ),
