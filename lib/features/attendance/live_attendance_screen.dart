@@ -4,67 +4,107 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:presensimagang/core/app_colors.dart';
-import 'package:presensimagang/features/attendance/data/attendance_data.dart';
+import 'package:presensimagang/features/attendance/attendance_history_screen.dart';
+import 'package:presensimagang/features/attendance/data/attendance_store.dart';
+import 'package:presensimagang/features/attendance/widgets/attendance_log_detail_sheet.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_section.dart';
 import 'package:presensimagang/features/attendance/widgets/clock_card.dart';
 
-/// Halaman Live Attendance: header merah dengan jam realtime, kartu presensi
-/// (ClockCard), dan Attendance Log. Aksi tombol masih placeholder (snackbar).
-class LiveAttendanceScreen extends StatelessWidget {
+/// Halaman Live Attendance: header merah dengan jam realtime, ClockCard
+/// (Clock In / Clock Out / istirahat), dan log presensi hari ini.
+class LiveAttendanceScreen extends StatefulWidget {
   const LiveAttendanceScreen({super.key});
 
-  void _comingSoon(BuildContext context, String feature) {
+  @override
+  State<LiveAttendanceScreen> createState() => _LiveAttendanceScreenState();
+}
+
+class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
+  final AttendanceStore _store = AttendanceStore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _store.load(); // muat riwayat tersimpan
+  }
+
+  void _show(AttendanceResult result) {
+    // removeCurrentSnackBar: pesan baru langsung menggantikan yang lama,
+    // tidak mengantri saat tombol ditekan berulang.
     ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$feature belum tersedia')));
+      ..removeCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: result.ok ? null : AppColors.error,
+        ),
+      );
+  }
+
+  void _openHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const AttendanceHistoryScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                color: AppColors.primary,
-                child: SafeArea(
-                  bottom: false,
-                  child: Column(
-                    children: [
-                      const _TopBar(),
-                      const SizedBox(height: 4),
-                      const _LiveClock(),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: ClockCard(
-                          schedule: mockSchedule,
-                          date: DateTime.now(),
-                          onClockIn: () => _comingSoon(context, 'Clock In'),
-                          onClockOut: () => _comingSoon(context, 'Clock Out'),
-                          onStartBreak: () =>
-                              _comingSoon(context, 'Start Break'),
-                        ),
+    return ListenableBuilder(
+      listenable: _store,
+      builder: (context, _) {
+        final now = DateTime.now();
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    color: AppColors.primary,
+                    child: SafeArea(
+                      bottom: false,
+                      child: Column(
+                        children: [
+                          const _TopBar(),
+                          const SizedBox(height: 4),
+                          const _LiveClock(),
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: ClockCard(
+                              schedule: _store.schedule,
+                              date: now,
+                              status: _store.statusOn(now),
+                              statusText: _store.statusLabelOn(now),
+                              onClockIn: () => _show(_store.clockIn()),
+                              onClockOut: () => _show(_store.clockOut()),
+                              onToggleBreak: () => _show(_store.toggleBreak()),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                    ],
+                    ),
                   ),
-                ),
+                  AttendanceLogSection(
+                    logs: _store.logsOn(now),
+                    schedule: _store.schedule,
+                    onViewLog: _openHistory,
+                    onTapLog: (log) => showAttendanceLogDetail(
+                      context,
+                      log: log,
+                      schedule: _store.schedule,
+                    ),
+                  ),
+                ],
               ),
-              AttendanceLogSection(
-                logs: mockAttendanceLogs,
-                onViewLog: () => _comingSoon(context, 'Halaman View Log'),
-                onTapLog: (log) =>
-                    _comingSoon(context, 'Detail ${log.type}'),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

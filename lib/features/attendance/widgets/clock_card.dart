@@ -6,25 +6,38 @@ import 'package:presensimagang/features/attendance/widgets/slide_to_break.dart';
 import 'package:presensimagang/widgets/custom_button.dart';
 
 const Color _kClockBlue = Color(0xFF2B5CB8);
+const Color _kBreakOrange = Color(0xFFE08A00);
 
 /// Kartu presensi untuk satu jadwal: tanggal jadwal, nama shift, jam kerja,
-/// tombol Clock In / Clock Out, dan slider mulai istirahat.
-/// Semua aksi dikirim lewat callback (fungsi sebenarnya menyusul).
+/// chip status, tombol Clock In / Clock Out, dan slider istirahat.
+/// Logika presensi ada di AttendanceStore; kartu ini hanya menampilkan
+/// [status] dan meneruskan aksi lewat callback.
 class ClockCard extends StatelessWidget {
   const ClockCard({
     super.key,
     required this.schedule,
     required this.date,
+    required this.status,
+    required this.statusText,
     required this.onClockIn,
     required this.onClockOut,
-    required this.onStartBreak,
+    required this.onToggleBreak,
   });
 
   final AttendanceSchedule schedule;
   final DateTime date;
+  final AttendanceStatus status;
+  final String statusText;
   final VoidCallback onClockIn;
   final VoidCallback onClockOut;
-  final VoidCallback onStartBreak;
+  final VoidCallback onToggleBreak;
+
+  Color get _statusColor => switch (status) {
+        AttendanceStatus.notStarted => AppColors.textSecondary,
+        AttendanceStatus.working => AppColors.success,
+        AttendanceStatus.onBreak => _kBreakOrange,
+        AttendanceStatus.finished => _kClockBlue,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +86,24 @@ class ClockCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: _statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    statusText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -104,7 +135,12 @@ class ClockCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                SlideToBreak(onCompleted: onStartBreak),
+                SlideToBreak(
+                  label: status == AttendanceStatus.onBreak
+                      ? 'Slide to end break'
+                      : 'Slide to start break',
+                  onCompleted: onToggleBreak,
+                ),
               ],
             ),
           ),

@@ -7,8 +7,5 @@ const AttendanceSchedule mockSchedule = AttendanceSchedule(
   end: '16:00',
 );
 
-/// Riwayat presensi dummy (urut dari paling awal, seperti referensi).
-final List<AttendanceLog> mockAttendanceLogs = [
-  AttendanceLog(time: DateTime(2026, 10, 12, 8, 2), type: 'Clock In'),
-  AttendanceLog(time: DateTime(2026, 10, 12, 16, 5), type: 'Clock Out'),
-];
+/// Nama kantor dummy. Akan diganti lokasi sungguhan saat integrasi peta.
+const String mockOfficeName = 'Kantor Pusat Jakarta';
