@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:presensimagang/core/app_colors.dart';
@@ -22,6 +24,11 @@ class _ClockInScreenState extends State<ClockInScreen>
 
   final LocationService _service = const LocationService();
 
+  final double _radiusMeters = AttendanceConfig.defaultRadiusMeters;
+
+  GoogleMapController? _mapController;
+  LatLng? _userLatLng;
+
   LocationStatus? _status;
   bool _hasAsked = false;
 
@@ -35,6 +42,7 @@ class _ClockInScreenState extends State<ClockInScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -52,16 +60,79 @@ class _ClockInScreenState extends State<ClockInScreen>
       return;
     }
 
-    setState(() => _status = status);
+    _applyStatus(status);
   }
 
   Future<void> _requestAccess() async {
     final status = await _service.requestAccess();
     if (!mounted) return;
-    setState(() {
-      _status = status;
-      _hasAsked = true;
-    });
+    _hasAsked = true;
+    _applyStatus(status);
+  }
+
+  void _applyStatus(LocationStatus status) {
+    final becameReady =
+        _status != LocationStatus.ready && status == LocationStatus.ready;
+    setState(() => _status = status);
+    if (becameReady) _loadUserPosition();
+  }
+
+  Future<void> _loadUserPosition({bool fit = true}) async {
+    try {
+      final pos = await _service.getCurrentPosition();
+      if (!mounted) return;
+      setState(() => _userLatLng = LatLng(pos.latitude, pos.longitude));
+      if (fit) _fitCamera();
+    } catch (e) {
+      debugPrint('Gagal mengambil posisi: $e');
+    }
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+    Future.delayed(const Duration(milliseconds: 300), _fitCamera);
+  }
+
+  Future<void> _fitCamera() async {
+    final controller = _mapController;
+    if (controller == null) return;
+
+    const metersPerDegreeLat = 111320.0;
+    final dLat = _radiusMeters / metersPerDegreeLat;
+    final dLng =
+        _radiusMeters /
+        (metersPerDegreeLat *
+            math.cos(AttendanceConfig.officeLatitude * math.pi / 180));
+    var minLat = AttendanceConfig.officeLatitude - dLat;
+    var maxLat = AttendanceConfig.officeLatitude + dLat;
+    var minLng = AttendanceConfig.officeLongitude - dLng;
+    var maxLng = AttendanceConfig.officeLongitude + dLng;
+
+    final user = _userLatLng;
+    if (user != null) {
+      minLat = math.min(minLat, user.latitude);
+      maxLat = math.max(maxLat, user.latitude);
+      minLng = math.min(minLng, user.longitude);
+      minLng = math.min(maxLng, user.longitude);
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    try {
+      await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 64));
+    } catch (e) {
+      debugPrint('Gagal menyesuaikan kamera: $e');
+    }
+  }
+
+  Future<void> _centerOnUser() async {
+    await _loadUserPosition(fit: false);
+    final user = _userLatLng;
+    if (user == null) return;
+    await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(user, 17));
   }
 
   @override
@@ -106,10 +177,36 @@ class _ClockInScreenState extends State<ClockInScreen>
       );
     }
 
-    return GoogleMap(
-      initialCameraPosition: const CameraPosition(target: _office, zoom: 16),
-      zoomControlsEnabled: false,
-      mapToolbarEnabled: false,
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: const CameraPosition(target: _office, zoom: 16),
+          markers: {
+            Marker(
+              markerId: const MarkerId('office'),
+              position: _office,
+              infoWindow: InfoWindow(title: AttendanceConfig.officeName), 
+            ),
+          },
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          mapToolbarEnabled: false,
+          onMapCreated: _onMapCreated,
+        ),
+        Positioned(
+          right: 12,
+          bottom: 12,
+          child: FloatingActionButton.small(
+            heroTag: null,
+            backgroundColor: AppColors.surface,
+            foregroundColor: AppColors.action,
+            elevation: 2,
+            onPressed: _centerOnUser,
+            child: const Icon(Icons.my_location),
+          ),
+        ),
+      ],
     );
   }
 }
