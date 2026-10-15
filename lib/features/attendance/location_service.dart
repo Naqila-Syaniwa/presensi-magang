@@ -46,6 +46,10 @@ class LocationService {
     );
   }
 
+  Future<bool> openAppSettings() => Geolocator.openAppSettings();
+
+  Future<bool> openLocationSettings() => Geolocator.openLocationSettings();
+
   LocationStatus _mapPermission(LocationPermission permission) {
     switch (permission) {
       case LocationPermission.whileInUse:

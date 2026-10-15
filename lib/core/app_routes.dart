@@ -3,5 +3,6 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String home = '/home';
+  static const String liveAttendance = '/live-attendance';
   static const String clockIn = '/clock-in';
 }

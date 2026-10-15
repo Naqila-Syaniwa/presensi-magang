@@ -5,6 +5,7 @@ import 'package:presensimagang/features/auth/login_screen.dart';
 import 'package:presensimagang/features/home/home_screen.dart';
 import 'package:presensimagang/features/onboarding/onboarding_screen.dart';
 import 'package:presensimagang/features/splash/splash_screen.dart';
+import 'package:presensimagang/features/attendance/live_attendance_screen.dart';
 import 'package:presensimagang/features/attendance/clock_in_screen.dart';
 
 void main() {
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.onboarding: (_) => const OnboardingScreen(),
         AppRoutes.login: (_) => const LoginScreen(),
         AppRoutes.home: (_) => const HomeScreen(),
+        AppRoutes.liveAttendance: (_) => const LiveAttendanceScreen(),
         AppRoutes.clockIn: (_) => const ClockInScreen(),
       },
     );

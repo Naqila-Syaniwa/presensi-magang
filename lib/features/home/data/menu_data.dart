@@ -23,6 +23,11 @@ const List<HomeMenuItem> homeMenuItems = [
     icon: Icons.access_time_filled,
     color: Color(0xFF6F86EE),
   ),
+  HomeMenuItem(
+    label: 'Live Attendance',
+    icon: Icons.location_on,
+    color: Color(0xFFDB4F9F),
+  ),
   HomeMenuItem(label: 'Overtime', icon: Icons.alarm, color: Color(0xFFD353B6)),
   HomeMenuItem(
     label: 'Mekari Flex',
@@ -39,11 +44,7 @@ const List<HomeMenuItem> homeMenuItems = [
     icon: Icons.payment_outlined,
     color: Color(0xFF3B86E5),
   ),
-  HomeMenuItem(
-    label: 'Calendar',
-    icon: Icons.calendar_month_outlined,
-    color: Color(0xFFDB4F9F),
-  ),
+  
   HomeMenuItem(
     label: 'All Apps',
     icon: Icons.apps_rounded,

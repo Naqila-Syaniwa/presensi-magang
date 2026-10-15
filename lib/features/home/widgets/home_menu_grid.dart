@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/home/data/menu_data.dart';
+import 'package:presensimagang/core/app_routes.dart';
 
 class HomeMenuGrid extends StatelessWidget {
   const HomeMenuGrid({super.key});
@@ -44,9 +45,15 @@ class _MenuTile extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${item.label}: coming soon')),
-          );
+          if (item.label == 'Live Attendance') {
+            Navigator.pushNamed(context, AppRoutes.liveAttendance);
+            return;
+          }
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text('${item.label}: coming soon')),
+            );
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
