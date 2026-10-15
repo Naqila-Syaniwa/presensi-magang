@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/core/attendance_config.dart';
 import 'package:presensimagang/features/attendance/location_service.dart';
-import 'package:presensimagang/features/attendance/radius_checker.dart';
+import 'package:presensimagang/features/attendance/widgets/clock_in_info_card.dart';
 import 'package:presensimagang/features/attendance/widgets/location_permission_view.dart';
 
 class ClockInScreen extends StatefulWidget {
@@ -12,14 +15,15 @@ class ClockInScreen extends StatefulWidget {
 
 class _ClockInScreenState extends State<ClockInScreen>
     with WidgetsBindingObserver {
+  static const LatLng _office = LatLng(
+    AttendanceConfig.officeLatitude,
+    AttendanceConfig.officeLongitude,
+  );
+
   final LocationService _service = const LocationService();
 
   LocationStatus? _status;
   bool _hasAsked = false;
-
-  String _output = 'Tekan "Tes lokasi".';
-  bool _loading = false;
-  bool _valid = false;
 
   @override
   void initState() {
@@ -60,66 +64,38 @@ class _ClockInScreenState extends State<ClockInScreen>
     });
   }
 
-  Future<void> _test() async {
-    setState(() {
-      _loading = true;
-      _valid = false;
-      _output = 'Memeriksa lokasi...';
-    });
-
-    try {
-      final status = await _service.requestAccess();
-      if (status != LocationStatus.ready) {
-        _finish('STATUS: $status');
-        return;
-      }
-
-      final pos = await _service.getCurrentPosition();
-      final r = checkRadius(
-        userLatitude: pos.latitude,
-        userLongitude: pos.longitude,
-        accuracyMeters: pos.accuracy,
-      );
-
-      _finish(
-        'STATUS: $status\n'
-        'Posisi: ${pos.latitude.toStringAsFixed(6)}, '
-        '${pos.longitude.toStringAsFixed(6)}\n'
-        'Akurasi: ${pos.accuracy.toStringAsFixed(1)} m (ok: ${r.accuracyOk})\n'
-        'Jarak ke kantor: ${r.distanceMeters.toStringAsFixed(1)} m '
-        '(maks ${r.radiusMeters.toStringAsFixed(0)} m)\n'
-        'Mock location: ${pos.isMocked}\n'
-        'VALID: ${r.isValid}',
-        valid: r.isValid,
-      );
-    } catch (e) {
-      _finish('ERROR: $e');
-    }
-  }
-
-  void _finish(String text, {bool valid = false}) {
-    debugPrint(text);
-    if (!mounted) return;
-    setState(() {
-      _output = text;
-      _valid = valid;
-      _loading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verifikasi Lokasi (tes)')),
-      body: _buildBody(),
+      appBar: AppBar(title: const Text('Live Attendance')),
+      body: Column(
+        children: [
+          Expanded(child: _buildMapArea()),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: ClockInInfoCard(
+                officeName: AttendanceConfig.officeName,
+                distanceText: '-',
+                statusText: 'Menunggu lokasi',
+                statusColor: AppColors.textSecondary,
+                onConfirm: () => Navigator.pop(context, true),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildMapArea() {
     final status = _status;
+
     if (status == null) {
       return const Center(child: CircularProgressIndicator());
     }
+
     if (status != LocationStatus.ready) {
       return LocationPermissionView(
         status: status,
@@ -129,28 +105,11 @@ class _ClockInScreenState extends State<ClockInScreen>
         onOpenLocationSettings: _service.openLocationSettings,
       );
     }
-    return _buildTestContent();
-  }
 
-  Widget _buildTestContent() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ElevatedButton(
-            onPressed: _loading ? null : _test,
-            child: Text(_loading ? 'Memeriksa...' : 'Tes lokasi'),
-          ),
-          const SizedBox(height: 16),
-          Text(_output),
-          const Spacer(),
-          ElevatedButton(
-            onPressed: _valid ? () => Navigator.pop(context, true) : null,
-            child: const Text('Konfirmasi (tes)'),
-          ),
-        ],
-      ),
+    return GoogleMap(
+      initialCameraPosition: const CameraPosition(target: _office, zoom: 16),
+      zoomControlsEnabled: false,
+      mapToolbarEnabled: false,
     );
   }
 }
