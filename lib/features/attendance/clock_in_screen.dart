@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/attendance_config.dart';
 import 'package:presensimagang/features/attendance/location_service.dart';
+import 'package:presensimagang/features/attendance/radius_checker.dart';
 import 'package:presensimagang/features/attendance/widgets/clock_in_info_card.dart';
 import 'package:presensimagang/features/attendance/widgets/location_permission_view.dart';
 
@@ -135,6 +136,43 @@ class _ClockInScreenState extends State<ClockInScreen>
     await _mapController?.animateCamera(CameraUpdate.newLatLngZoom(user, 17));
   }
 
+  bool? get _isInsideRadius {
+    final user = _userLatLng;
+    if (user == null) return null;
+
+    final distance = calculateDistanceMeters(
+      fromLatitude: user.latitude,
+      fromLongitude: user.longitude,
+      toLatitude: AttendanceConfig.officeLatitude,
+      toLongitude: AttendanceConfig.officeLongitude,
+    );
+    return distance <= _radiusMeters;
+  }
+
+  Set<Circle> _buildCircles() {
+    final inside = _isInsideRadius;
+
+    final Color color;
+    if (inside == null) {
+      color = AppColors.action;
+    } else if (inside) {
+      color = AppColors.success;
+    } else {
+      color = AppColors.error;
+    }
+
+    return {
+      Circle(
+        circleId: const CircleId('radius'),
+        center: _office,
+        radius: _radiusMeters,
+        fillColor: color.withValues(alpha: 0.18),
+        strokeColor: color,
+        strokeWidth: 2,
+      ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,14 +218,18 @@ class _ClockInScreenState extends State<ClockInScreen>
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: const CameraPosition(target: _office, zoom: 16),
+          initialCameraPosition: const CameraPosition(
+            target: _office,
+            zoom: 16,
+          ),
           markers: {
             Marker(
               markerId: const MarkerId('office'),
               position: _office,
-              infoWindow: InfoWindow(title: AttendanceConfig.officeName), 
+              infoWindow: InfoWindow(title: AttendanceConfig.officeName),
             ),
           },
+          circles: _buildCircles(),
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
