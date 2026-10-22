@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:presensimagang/features/attendance/widgets/clock_in_info_card.dart';
@@ -14,7 +13,10 @@ void main() {
             statusText: 'Lokasi palsu',
             statusColor: Colors.red,
             onConfirm: null,
-            warningMessage: 'Lokasi palsu terdeteksi.',
+            notice: ClockInNotice(
+              'Lokasi palsu terdeteksi.', 
+              ClockInNoticeTone.error,
+            ),
           ),
         ),
       ),

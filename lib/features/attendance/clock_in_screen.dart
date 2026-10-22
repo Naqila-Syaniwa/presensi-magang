@@ -3,9 +3,11 @@ import 'dart:async';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/attendance_config.dart';
+import 'package:presensimagang/widgets/custom_button.dart';
 import 'package:presensimagang/features/attendance/location_service.dart';
 import 'package:presensimagang/features/attendance/radius_checker.dart';
 import 'package:presensimagang/features/attendance/widgets/clock_in_info_card.dart';
@@ -101,6 +103,7 @@ class _ClockInScreenState extends State<ClockInScreen>
       if (!mounted) return;
       setState(() {
         _userLatLng = LatLng(pos.latitude, pos.longitude);
+        _accuracy = pos.accuracy;
         _isMocked = pos.isMocked;
       });
       if (fit) _fitCamera();
@@ -221,6 +224,7 @@ class _ClockInScreenState extends State<ClockInScreen>
   }
 
   RadiusCheckResult? get _check {
+    if (_status != LocationStatus.ready) return null;
     final user = _userLatLng;
     if (user == null) return null;
     return checkRadius(
@@ -236,7 +240,7 @@ class _ClockInScreenState extends State<ClockInScreen>
   }
 
   String _formatDistance(double meters) {
-    if (meters < 1000) return '${meters.round()} m';
+    if (meters < 1000) return '${meters.ceil()} m';
     return '${(meters / 1000).toStringAsFixed(1)} km';
   }
 
@@ -250,13 +254,92 @@ class _ClockInScreenState extends State<ClockInScreen>
     if (!r.accuracyOk) {
       return (
         text: 'Akurasi rendah (±${r.accuracyMeters.round()} m)',
-        color: Colors.orange,
+        color: AppColors.warning,
       );
     }
     if (r.withinRadius) {
       return (text: 'Di dalam radius', color: AppColors.success);
     }
     return (text: 'Di luar radius', color: AppColors.error);
+  }
+
+  ClockInNotice _noticeFor(RadiusCheckResult? r) {
+    if (_status != LocationStatus.ready) {
+      return const ClockInNotice(
+        'Aktifkan izin lokasi dan GPS untuk melakukan Clock In.',
+        ClockInNoticeTone.warning,
+      );
+    }
+    if (r == null) {
+      return const ClockInNotice(
+        'Sedang mencari lokasi Anda...',
+        ClockInNoticeTone.info,
+      );
+    }
+    if (!r.accuracyOk) {
+      return ClockInNotice(
+        'Sinyal GPS lemah (akurasi ±${r.accuracyMeters.round()} m, '
+        'maks. ${AttendanceConfig.maxAccuracyMeters.round()} m). '
+        'Pindah ke area terbuka lalu tunggu sebentar.',
+        ClockInNoticeTone.warning,
+      );
+    }
+    if (!r.withinRadius) {
+      return ClockInNotice(
+        'Anda berada ${_formatDistance(r.distanceMeters)} dari kantor '
+        '(maks. ${_formatDistance(r.radiusMeters)}).',
+        ClockInNoticeTone.error,
+      );
+    }
+    return const ClockInNotice(
+      'Anda berada di area kantor. Konfirmasi Clock In?',
+      ClockInNoticeTone.success,
+    );
+  }
+
+  Future<void> _confirmClockIn() async {
+    final now = DateTime.now();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Konfirmasi Clock In'),
+        content: Text(
+          'Anda akan Clock In di ${AttendanceConfig.officeName} '
+          'pukul ${DateFormat('HH:mm:ss').format(now)}. Lanjutkan?',
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          CustomButton(
+            label: 'Batal',
+            isOutlined: true,
+            fullWidth: false,
+            onPressed: () => Navigator.pop(dialogContext, false),
+          ),
+          CustomButton(
+            label: 'Konfirmasi',
+            fullWidth: false,
+            onPressed: () => Navigator.pop(dialogContext, true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    if (_check?.isValid != true) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Lokasi Anda berubah dan tidak lagi memenuhi syarat. '
+              'Silahkan coba lagi.',
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      return;
+    }
+    Navigator.pop(context, true);
   }
 
   @override
@@ -282,13 +365,8 @@ class _ClockInScreenState extends State<ClockInScreen>
                         : _formatDistance(r.distanceMeters),
                     statusText: info.text,
                     statusColor: info.color,
-                    onConfirm: _isMocked
-                        ? null
-                        : () => Navigator.pop(context, true),
-                    warningMessage: _isMocked
-                        ? 'Lokasi palsu (mock location) terdeteksi. '
-                              'Matikan aplikasi lokasi palsu, lalu coba lagi.'
-                        : null,
+                    onConfirm: r?.isValid == true ? _confirmClockIn : null,
+                    notice: _noticeFor(r),
                   );
                 },
               ),
