@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/core/app_prefs.dart';
 import 'package:presensimagang/core/app_routes.dart';
 import 'package:presensimagang/core/validators.dart';
 import 'package:presensimagang/widgets/custom_button.dart';
 import 'package:presensimagang/widgets/custom_text_field.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 // Warna khusus layar login (mengikuti desain referensi).
 const Color _kBlue = Color(0xFF0060C0);
 const Color _kLink = Color(0xFF1558D6);
-const Color _kPageBg = Color(0xFFF1F3F6);
+
+// Varian lebih terang untuk mode gelap (biru gelap kurang kontras).
+const Color _kBlueOnDark = Color(0xFF6BA8F0);
+const Color _kLinkOnDark = Color(0xFF8AB4F8);
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -39,7 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Login dummy (tanpa backend): validasi, loading 1,5 detik, lalu ke Home.
+  /// Login dummy (tanpa backend): validasi, loading 1,5 detik, simpan sesi,
+  /// lalu ke Home. Sesi hanya disimpan setelah validasi lolos.
   Future<void> _submit() async {
     if (_isLoading) return;
 
@@ -60,6 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
+    // Simpan sesi supaya app berikutnya langsung ke Home (auto-login).
+    await AppPrefs.setLoggedIn(_emailController.text.trim());
+    if (!mounted) return;
+
     Navigator.pushReplacementNamed(context, AppRoutes.home);
   }
 
@@ -73,21 +82,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = context.colors;
+    final blue = context.isDark ? _kBlueOnDark : _kBlue;
+    final link = context.isDark ? _kLinkOnDark : _kLink;
+
     return Scaffold(
-      backgroundColor: _kPageBg,
+      // Latar mengikuti scaffoldBackgroundColor tema (terang/gelap).
       // Body menyusut saat keyboard muncul; isinya di-scroll (tanpa overflow).
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Sign In'),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          color: scheme.onSurface,
         ),
       ),
       body: SafeArea(
@@ -104,9 +117,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: scheme.surface,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFE6E8EC)),
+                    border: Border.all(color: context.lineColor),
                   ),
                   child: Form(
                     key: _formKey,
@@ -120,12 +133,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: _LoginLogo(),
                         ),
                         const SizedBox(height: 36),
-                        const Text(
+                        Text(
                           'Sign in',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary,
+                            color: scheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -133,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _emailController,
                           focusNode: _emailFocus,
                           label: 'Email',
-                          focusColor: _kBlue,
+                          focusColor: blue,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
@@ -147,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           focusNode: _passwordFocus,
                           label: 'Password',
-                          focusColor: _kBlue,
+                          focusColor: blue,
                           isPassword: true,
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.password],
@@ -156,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           validator: Validators.password,
                         ),
                         const SizedBox(height: 40),
-                        CustomButton(
+                        CustomButton.primary(
                           label: 'Sign in',
                           backgroundColor: _kBlue,
                           fontWeight: FontWeight.w400,
@@ -191,18 +204,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         Center(
-                          child: TextButton(
+                          child: CustomButton.text(
+                            label: 'Lupa password',
+                            color: link,
+                            fontWeight: FontWeight.w400,
                             onPressed: _isLoading
                                 ? null
                                 : () => _showUnavailable('Fitur Lupa password'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: _kLink,
-                              minimumSize: const Size(48, 48),
-                            ),
-                            child: const Text(
-                              'Lupa password',
-                              style: TextStyle(fontSize: 15),
-                            ),
                           ),
                         ),
                       ],
@@ -227,10 +235,9 @@ class _AltButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomButton(
+    return CustomButton.outline(
       label: label,
-      isOutlined: true,
-      backgroundColor: _kLink,
+      color: context.isDark ? _kLinkOnDark : _kLink,
       fontWeight: FontWeight.w400,
       onPressed: onPressed,
     );
@@ -243,17 +250,19 @@ class _OrDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final line = context.lineColor;
+
+    return Row(
       children: [
-        Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+        Expanded(child: Divider(color: line, thickness: 1)),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'atau',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            style: TextStyle(color: context.mutedText, fontSize: 14),
           ),
         ),
-        Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+        Expanded(child: Divider(color: line, thickness: 1)),
       ],
     );
   }
@@ -281,7 +290,7 @@ class _LoginLogo extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 5),
-        const Flexible(
+        Flexible(
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
@@ -289,7 +298,7 @@ class _LoginLogo extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'mekari',
                   style: TextStyle(
                     fontSize: 22,
@@ -305,7 +314,7 @@ class _LoginLogo extends StatelessWidget {
                     height: 1.05,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1,
-                    color: Colors.black,
+                    color: context.colors.onSurface,
                   ),
                 ),
               ],
