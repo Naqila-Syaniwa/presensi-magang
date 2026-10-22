@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:presensimagang/core/app_routes.dart';
 import 'package:presensimagang/features/attendance/data/attendance_store.dart';
 import 'package:presensimagang/features/attendance/live_attendance_screen.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_section.dart';
@@ -26,6 +27,7 @@ Future<void> _pump(WidgetTester tester, Size size, double textScale) async {
         child: child!,
       ),
       home: const LiveAttendanceScreen(),
+      routes: {AppRoutes.clockIn: (_) => _FakeClockInScreen()},
     ),
   );
   // Biarkan pemuatan riwayat tersimpan selesai.
@@ -41,7 +43,7 @@ Future<void> _tapButton(WidgetTester tester, String label) async {
   final button = find.widgetWithText(ElevatedButton, label);
   await tester.ensureVisible(button);
   await tester.tap(button);
-  await tester.pump();
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -173,4 +175,24 @@ void main() {
 
     await _unmount(tester);
   });
+}
+
+class _FakeClockInScreen extends StatefulWidget {
+  const _FakeClockInScreen();
+
+  @override
+  State<_FakeClockInScreen> createState() => _FakeClockInScreenState();
+}
+
+class _FakeClockInScreenState extends State<_FakeClockInScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.pop(context, true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold();
 }

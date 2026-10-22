@@ -9,6 +9,7 @@ class RadiusCheckResult {
     required this.accuracyMeters,
     required this.withinRadius,
     required this.accuracyOk,
+    this.isMocked = false,
   });
 
   // Jarak pengguna ke kantor
@@ -26,8 +27,10 @@ class RadiusCheckResult {
   // true bila akurasi kurang lebih sama dengan batas akurasi maksimum
   final bool accuracyOk;
 
+  final bool isMocked;
+
   // Clock In diizinkn hanya bila di dalam radius dan akurasi cukup
-  bool get isValid => withinRadius && accuracyOk;
+  bool get isValid => withinRadius && accuracyOk && !isMocked;
 }
 
 const double _earthRadiusMeters = 6378137.0;
@@ -58,6 +61,7 @@ RadiusCheckResult checkRadius({
   required double userLatitude,
   required double userLongitude,
   required double accuracyMeters,
+  bool isMocked = false,
   double officeLatitude = AttendanceConfig.officeLatitude,
   double officeLongitude = AttendanceConfig.officeLongitude,
   double radiusMeters = AttendanceConfig.defaultRadiusMeters,
@@ -76,5 +80,6 @@ RadiusCheckResult checkRadius({
     accuracyMeters: accuracyMeters,
     withinRadius: distance <= radiusMeters,
     accuracyOk: accuracyMeters <= maxAccuracyMeters,
-  );            
+    isMocked: isMocked,
+  );
 }
