@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/features/attendance/data/attendance_models.dart';
+import 'package:presensimagang/widgets/custom_button.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 /// Bagian "Attendance Log" di halaman Live Attendance: log hari ini
 /// (urut dari paling awal) dan tombol "View Log" ke riwayat lengkap.
@@ -21,6 +22,8 @@ class AttendanceLogSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final line = context.lineColor;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       child: Column(
@@ -28,45 +31,43 @@ class AttendanceLogSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Attendance Log',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.onSurface,
                   ),
                 ),
               ),
-              TextButton(
+              CustomButton.text(
+                label: 'View Log',
+                color: context.mutedText,
+                fontWeight: FontWeight.w400,
                 onPressed: onViewLog,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textSecondary,
-                  minimumSize: const Size(48, 48),
-                ),
-                child: const Text('View Log', style: TextStyle(fontSize: 16)),
               ),
             ],
           ),
           if (logs.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
                 'Belum ada presensi hari ini',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: context.mutedText),
               ),
             )
           else ...[
             for (final log in logs) ...[
-              const Divider(height: 1, thickness: 1, color: AppColors.border),
+              Divider(height: 1, thickness: 1, color: line),
               AttendanceLogTile(
                 log: log,
                 note: schedule.noteFor(log),
                 onTap: () => onTapLog(log),
               ),
             ],
-            const Divider(height: 1, thickness: 1, color: AppColors.border),
+            Divider(height: 1, thickness: 1, color: line),
           ],
         ],
       ),
@@ -102,17 +103,17 @@ class AttendanceLogTile extends StatelessWidget {
                 children: [
                   Text(
                     DateFormat('HH:mm').format(log.time),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: context.colors.onSurface,
                     ),
                   ),
                   Text(
                     DateFormat('d MMM').format(log.time),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: context.mutedText,
                     ),
                   ),
                 ],
@@ -124,23 +125,23 @@ class AttendanceLogTile extends StatelessWidget {
                 children: [
                   Text(
                     log.type.label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.textPrimary,
+                      color: context.colors.onSurface,
                     ),
                   ),
                   if (note != null)
                     Text(
                       note!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: context.mutedText,
                       ),
                     ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            Icon(Icons.chevron_right, color: context.mutedText),
           ],
         ),
       ),

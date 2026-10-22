@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/features/attendance/data/attendance_models.dart';
 import 'package:presensimagang/features/attendance/widgets/slide_to_break.dart';
 import 'package:presensimagang/widgets/custom_button.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 const Color _kClockBlue = Color(0xFF2B5CB8);
 const Color _kBreakOrange = Color(0xFFE08A00);
@@ -36,8 +36,8 @@ class ClockCard extends StatelessWidget {
 
   final VoidCallback onToggleBreak;
 
-  Color get _statusColor => switch (status) {
-        AttendanceStatus.notStarted => AppColors.textSecondary,
+  Color _statusColor(BuildContext context) => switch (status) {
+        AttendanceStatus.notStarted => context.mutedText,
         AttendanceStatus.working => AppColors.success,
         AttendanceStatus.onBreak => _kBreakOrange,
         AttendanceStatus.finished => _kClockBlue,
@@ -94,10 +94,14 @@ class ClockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = context.colors;
+    final muted = context.mutedText;
+    final statusColor = _statusColor(context);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -111,19 +115,16 @@ class ClockCard extends StatelessWidget {
                 Text(
                   'Schedule: ${DateFormat('d MMM y').format(date)}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: muted),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   schedule.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: scheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -131,11 +132,11 @@ class ClockCard extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     schedule.rangeLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                      fontFeatures: [
+                      color: scheme.onSurface,
+                      fontFeatures: const [
                         FontFeature.tabularFigures(),
                       ],
                     ),
@@ -148,7 +149,7 @@ class ClockCard extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: _statusColor.withValues(alpha: 0.12),
+                    color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -157,17 +158,17 @@ class ClockCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: _statusColor,
+                      color: statusColor,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(
+          Divider(
             height: 1,
             thickness: 1,
-            color: AppColors.border,
+            color: context.lineColor,
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -177,7 +178,7 @@ class ClockCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: CustomButton(
+                      child: CustomButton.primary(
                         label: 'Clock In',
                         backgroundColor: _kClockBlue,
                         borderRadius: 8,
@@ -186,7 +187,7 @@ class ClockCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: CustomButton(
+                      child: CustomButton.primary(
                         label: 'Clock Out',
                         backgroundColor: _kClockBlue,
                         borderRadius: 8,
@@ -256,11 +257,15 @@ class _ClockOutDialogState extends State<_ClockOutDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        CustomButton.text(
+          label: 'Batal',
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Batal'),
         ),
-        ElevatedButton(
+        CustomButton.primary(
+          label: 'Clock Out',
+          fullWidth: false,
+          backgroundColor: _kClockBlue,
+          borderRadius: 8,
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               Navigator.of(context).pop(
@@ -268,7 +273,6 @@ class _ClockOutDialogState extends State<_ClockOutDialog> {
               );
             }
           },
-          child: const Text('Clock Out'),
         ),
       ],
     );

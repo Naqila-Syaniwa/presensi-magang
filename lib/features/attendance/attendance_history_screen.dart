@@ -6,6 +6,7 @@ import 'package:presensimagang/features/attendance/data/attendance_models.dart';
 import 'package:presensimagang/features/attendance/data/attendance_store.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_detail_sheet.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_section.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 /// Riwayat presensi lengkap, dikelompokkan per tanggal (terbaru di atas).
 /// Dibuka dari tombol "View Log" di Live Attendance.
@@ -17,7 +18,7 @@ class AttendanceHistoryScreen extends StatelessWidget {
     final store = AttendanceStore.instance;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.colors.surface,
       appBar: AppBar(
         title: const Text('Attendance Log'),
         centerTitle: true,
@@ -43,13 +44,13 @@ class AttendanceHistoryScreen extends StatelessWidget {
           final days = byDay.keys.toList()..sort((a, b) => b.compareTo(a));
 
           if (days.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
                 child: Text(
                   'Belum ada riwayat presensi',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: context.mutedText),
                 ),
               ),
             );
@@ -60,15 +61,15 @@ class AttendanceHistoryScreen extends StatelessWidget {
             children: [
               for (final day in days) ...[
                 Container(
-                  color: AppColors.background,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Text(
                     DateFormat('EEEE, d MMM y').format(day),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: context.mutedText,
                     ),
                   ),
                 ),
@@ -85,12 +86,12 @@ class AttendanceHistoryScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Divider(
+                  Divider(
                     height: 1,
                     thickness: 1,
                     indent: 16,
                     endIndent: 16,
-                    color: AppColors.border,
+                    color: context.lineColor,
                   ),
                 ],
               ],

@@ -9,6 +9,7 @@ import 'package:presensimagang/features/attendance/data/attendance_store.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_detail_sheet.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_section.dart';
 import 'package:presensimagang/features/attendance/widgets/clock_card.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 /// Halaman Live Attendance: header merah dengan jam realtime, ClockCard
 /// (Clock In / Clock Out / istirahat), dan log presensi hari ini.
@@ -55,7 +56,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
         final now = DateTime.now();
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: context.colors.surface,
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: SingleChildScrollView(
