@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+import 'dart:async';
 
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:presensimagang/core/app_colors.dart';
@@ -30,6 +32,9 @@ class _ClockInScreenState extends State<ClockInScreen>
   GoogleMapController? _mapController;
   LatLng? _userLatLng;
 
+  StreamSubscription<Position>? _positionSub;
+  double? _accuracy;
+
   LocationStatus? _status;
   bool _hasAsked = false;
 
@@ -44,12 +49,17 @@ class _ClockInScreenState extends State<ClockInScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _mapController?.dispose();
+    _stopTracking();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refreshStatus();
+    if (state == AppLifecycleState.paused) {
+      _positionSub?.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      _positionSub?.resume();
+    }
   }
 
   Future<void> _refreshStatus() async {
@@ -75,7 +85,12 @@ class _ClockInScreenState extends State<ClockInScreen>
     final becameReady =
         _status != LocationStatus.ready && status == LocationStatus.ready;
     setState(() => _status = status);
-    if (becameReady) _loadUserPosition();
+    if (becameReady) {
+      _loadUserPosition();
+      _startTracking();
+    } else if (status != LocationStatus.ready) {
+      _stopTracking();
+    }
   }
 
   Future<void> _loadUserPosition({bool fit = true}) async {
@@ -114,7 +129,7 @@ class _ClockInScreenState extends State<ClockInScreen>
       minLat = math.min(minLat, user.latitude);
       maxLat = math.max(maxLat, user.latitude);
       minLng = math.min(minLng, user.longitude);
-      minLng = math.min(maxLng, user.longitude);
+      maxLng = math.max(maxLng, user.longitude);
     }
 
     final bounds = LatLngBounds(
@@ -173,6 +188,67 @@ class _ClockInScreenState extends State<ClockInScreen>
     };
   }
 
+  void _startTracking() {
+    _positionSub?.cancel();
+    _positionSub = _service.positionStream().listen(
+      _onPosition,
+      onError: (Object _) {
+        _stopTracking();
+        _service.checkStatus().then((s) {
+          if (mounted) _applyStatus(s);
+        });
+      },
+    );
+  }
+
+  void _stopTracking() {
+    _positionSub?.cancel();
+    _positionSub = null;
+  }
+
+  void _onPosition(Position pos) {
+    if (!mounted) return;
+    setState(() {
+      _userLatLng = LatLng(pos.latitude, pos.longitude);
+      _accuracy = pos.accuracy;
+    });
+  }
+
+  RadiusCheckResult? get _check {
+    final user = _userLatLng;
+    if (user == null) return null;
+    return checkRadius(
+      userLatitude: user.latitude,
+      userLongitude: user.longitude,
+      accuracyMeters: _accuracy ?? 0,
+      officeLatitude: _office.latitude,
+      officeLongitude: _office.longitude,
+      radiusMeters: _radiusMeters,
+      maxAccuracyMeters: AttendanceConfig.maxAccuracyMeters,
+    );
+  }
+
+  String _formatDistance(double meters) {
+    if (meters < 1000) return '${meters.round()} m';
+    return '${(meters / 1000).toStringAsFixed(1)} km';
+  }
+
+  ({String text, Color color}) _statusInfo(RadiusCheckResult? r) {
+    if (r == null) {
+      return (text: 'Menunggu lokasi', color: AppColors.textSecondary);
+    }
+    if (!r.accuracyOk) {
+      return (
+        text: 'Akurasi rendah (±${r.accuracyMeters.round()} m)',
+        color: Colors.orange,
+      );
+    }
+    if (r.withinRadius) {
+      return (text: 'Di dalam radius', color: AppColors.success);
+    }
+    return (text: 'Di luar radius', color: AppColors.error);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,12 +260,19 @@ class _ClockInScreenState extends State<ClockInScreen>
             top: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: ClockInInfoCard(
-                officeName: AttendanceConfig.officeName,
-                distanceText: '-',
-                statusText: 'Menunggu lokasi',
-                statusColor: AppColors.textSecondary,
-                onConfirm: () => Navigator.pop(context, true),
+              child: Builder(
+                builder: (context) {
+                  final r = _check;
+                  final info = _statusInfo(r);
+
+                  return ClockInInfoCard(
+                    officeName: AttendanceConfig.officeName,
+                    distanceText: r == null ? '-' : _formatDistance(r.distanceMeters),
+                    statusText: info.text,
+                    statusColor: info.color,
+                    onConfirm: () => Navigator.pop(context, true),
+                  );
+                },
               ),
             ),
           ),

@@ -46,6 +46,15 @@ class LocationService {
     );
   }
 
+  Stream<Position> positionStream({int distanceFilter = 5}) {
+    return Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilter,
+      ),
+    );
+  }
+
   Future<bool> openAppSettings() => Geolocator.openAppSettings();
 
   Future<bool> openLocationSettings() => Geolocator.openLocationSettings();
