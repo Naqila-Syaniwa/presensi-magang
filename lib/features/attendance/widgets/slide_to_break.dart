@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 /// Slider "Slide to start break": geser tombol cangkir ke kanan sampai ujung
 /// untuk memicu [onCompleted]; bila dilepas sebelum ujung, tombol kembali.
@@ -36,6 +37,16 @@ class _SlideToBreakState extends State<SlideToBreak> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = context.colors;
+    // Trek sedikit berbeda dari latar kartu; mode terang ~ F1F3F6.
+    final track = Color.alphaBlend(
+      scheme.onSurface.withValues(alpha: 0.06),
+      scheme.surface,
+    );
+    final thumb = context.isDark
+        ? Color.alphaBlend(scheme.onSurface.withValues(alpha: 0.18), scheme.surface)
+        : scheme.surface;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxDx = (constraints.maxWidth - _thumbWidth)
@@ -58,9 +69,9 @@ class _SlideToBreakState extends State<SlideToBreak> {
             child: Container(
               height: _height,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F3F6),
+                color: track,
                 borderRadius: BorderRadius.circular(_height / 2),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.lineColor),
               ),
               child: Stack(
                 children: [
@@ -74,9 +85,9 @@ class _SlideToBreakState extends State<SlideToBreak> {
                             widget.label,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
-                              color: AppColors.textSecondary,
+                              color: context.mutedText,
                             ),
                           ),
                         ),
@@ -93,7 +104,7 @@ class _SlideToBreakState extends State<SlideToBreak> {
                     width: _thumbWidth,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: thumb,
                         borderRadius: BorderRadius.circular(_height / 2),
                         boxShadow: const [
                           BoxShadow(

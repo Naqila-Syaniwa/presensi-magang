@@ -113,4 +113,37 @@ class AppTheme {
       ),
     );
   }
+  
+  static ThemeData get dark {
+    final base = light;
+    return base.copyWith(
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.dark(
+        primary: AppColors.action,
+        onPrimary: AppColors.surface,
+        secondary: AppColors.primary,
+        onSecondary: AppColors.surface,
+        error: AppColors.error,
+        onError: AppColors.surface,
+        surface: const Color(0xFF1E1E1E),
+        onSurface: const Color(0xFFF5F5F5),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: const Color(0xFF1E1E1E),
+        foregroundColor: const Color(0xFFF5F5F5),
+      ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        filled: true,
+        fillColor: const Color(0xFF1E1E1E),
+      ),
+      cardTheme: base.cardTheme.copyWith(
+        color: const Color(0xFF1E1E1E),
+      ),
+      bottomNavigationBarTheme:
+          base.bottomNavigationBarTheme.copyWith(
+        backgroundColor: const Color(0xFF1E1E1E),
+      ),
+    );
+  }
 }

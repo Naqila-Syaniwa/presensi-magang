@@ -91,6 +91,29 @@ class AttendanceStore extends ChangeNotifier {
   }
 
   AttendanceResult clockOut([DateTime? now]) {
+    return _processClockOut(now, null);
+  }
+
+  AttendanceResult clockOutWithNote(
+    String activityNote, [
+    DateTime? now,
+  ]) {
+    final note = activityNote.trim();
+
+    if (note.isEmpty) {
+      return const AttendanceResult(
+        false,
+        'Keterangan kegiatan wajib diisi',
+      );
+    }
+    return _processClockOut(now, note);
+  }
+
+  AttendanceResult _processClockOut(
+    DateTime? now,
+    String? activityNote,
+  ) {
+
     final t = now ?? DateTime.now();
     switch (statusOn(t)) {
       case AttendanceStatus.working:
@@ -120,8 +143,11 @@ class AttendanceStore extends ChangeNotifier {
     }
   }
 
-  AttendanceResult _add(AttendanceType type, DateTime time) {
-    final log = AttendanceLog(time: time, type: type);
+  AttendanceResult _add(AttendanceType type, DateTime time, {
+    String? activityNote,
+  }){
+
+    final log = AttendanceLog(time: time, type: type, activityNote: activityNote,);
     _logs
       ..add(log)
       ..sort((a, b) => a.time.compareTo(b.time));

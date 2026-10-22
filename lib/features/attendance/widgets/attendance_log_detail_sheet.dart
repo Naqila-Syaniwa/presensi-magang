@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/features/attendance/data/attendance_data.dart';
 import 'package:presensimagang/features/attendance/data/attendance_models.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 /// Bottom sheet detail sebuah log presensi.
 Future<void> showAttendanceLogDetail(
@@ -16,7 +16,7 @@ Future<void> showAttendanceLogDetail(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: context.colors.surface,
     builder: (context) => SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -26,10 +26,10 @@ Future<void> showAttendanceLogDetail(
           children: [
             Text(
               log.type.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.colors.onSurface,
               ),
             ),
             const SizedBox(height: 16),
@@ -62,15 +62,15 @@ class _DetailRow extends StatelessWidget {
             width: 96,
             child: Text(
               label,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: context.mutedText),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: context.colors.onSurface,
               ),
             ),
           ),

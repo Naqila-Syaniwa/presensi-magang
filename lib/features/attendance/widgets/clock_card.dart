@@ -4,6 +4,7 @@ import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/features/attendance/data/attendance_models.dart';
 import 'package:presensimagang/features/attendance/widgets/slide_to_break.dart';
 import 'package:presensimagang/widgets/custom_button.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 const Color _kClockBlue = Color(0xFF2B5CB8);
 const Color _kBreakOrange = Color(0xFFE08A00);
@@ -11,7 +12,7 @@ const Color _kBreakOrange = Color(0xFFE08A00);
 /// Kartu presensi untuk satu jadwal: tanggal jadwal, nama shift, jam kerja,
 /// chip status, tombol Clock In / Clock Out, dan slider istirahat.
 /// Logika presensi ada di AttendanceStore; kartu ini hanya menampilkan
-/// [status] dan meneruskan aksi lewat callback.
+/// status dan meneruskan aksi lewat callback.
 class ClockCard extends StatelessWidget {
   const ClockCard({
     super.key,
@@ -29,22 +30,78 @@ class ClockCard extends StatelessWidget {
   final AttendanceStatus status;
   final String statusText;
   final VoidCallback onClockIn;
-  final VoidCallback onClockOut;
+
+  /// Meneruskan keterangan kegiatan kepada halaman pemanggil.
+  final ValueChanged<String> onClockOut;
+
   final VoidCallback onToggleBreak;
 
-  Color get _statusColor => switch (status) {
-        AttendanceStatus.notStarted => AppColors.textSecondary,
+  Color _statusColor(BuildContext context) => switch (status) {
+        AttendanceStatus.notStarted => context.mutedText,
         AttendanceStatus.working => AppColors.success,
         AttendanceStatus.onBreak => _kBreakOrange,
         AttendanceStatus.finished => _kClockBlue,
       };
 
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+  }
+
+  /// Memeriksa status sebelum menampilkan dialog Clock Out.
+  Future<void> _showClockOutDialog(BuildContext context) async {
+    if (status == AttendanceStatus.onBreak) {
+      _showMessage(
+        context,
+        'Akhiri istirahat terlebih dahulu sebelum Clock Out.',
+      );
+      return;
+    }
+
+    if (status == AttendanceStatus.notStarted) {
+      _showMessage(
+        context,
+        'Clock In terlebih dahulu.',
+      );
+      return;
+    }
+
+    if (status == AttendanceStatus.finished) {
+      _showMessage(
+        context,
+        'Kamu sudah Clock Out hari ini.',
+      );
+      return;
+    }
+
+    final activityNote = await showDialog<String>(
+      context: context,
+      builder: (_) => const _ClockOutDialog(),
+    );
+
+    // Jika batal atau dialog ditutup, Clock Out tidak dijalankan.
+    if (!context.mounted ||
+        activityNote == null ||
+        activityNote.trim().isEmpty) {
+      return;
+    }
+
+    onClockOut(activityNote.trim());
+  }
+
   @override
   Widget build(BuildContext context) {
+    final scheme = context.colors;
+    final muted = context.mutedText;
+    final statusColor = _statusColor(context);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -58,19 +115,16 @@ class ClockCard extends StatelessWidget {
                 Text(
                   'Schedule: ${DateFormat('d MMM y').format(date)}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: muted),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   schedule.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: scheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -78,20 +132,24 @@ class ClockCard extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     schedule.rangeLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                      fontFeatures: [FontFeature.tabularFigures()],
+                      color: scheme.onSurface,
+                      fontFeatures: const [
+                        FontFeature.tabularFigures(),
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
-                    color: _statusColor.withValues(alpha: 0.12),
+                    color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -100,14 +158,18 @@ class ClockCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: _statusColor,
+                      color: statusColor,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: AppColors.border),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: context.lineColor,
+          ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -116,7 +178,7 @@ class ClockCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: CustomButton(
+                      child: CustomButton.primary(
                         label: 'Clock In',
                         backgroundColor: _kClockBlue,
                         borderRadius: 8,
@@ -125,11 +187,11 @@ class ClockCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: CustomButton(
+                      child: CustomButton.primary(
                         label: 'Clock Out',
                         backgroundColor: _kClockBlue,
                         borderRadius: 8,
-                        onPressed: onClockOut,
+                        onPressed: () => _showClockOutDialog(context),
                       ),
                     ),
                   ],
@@ -146,6 +208,73 @@ class ClockCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Dialog keterangan kegiatan yang ditampilkan sebelum Clock Out.
+/// Controller dikelola oleh State dialog agar lifecycle-nya terjaga.
+class _ClockOutDialog extends StatefulWidget {
+  const _ClockOutDialog();
+
+  @override
+  State<_ClockOutDialog> createState() => _ClockOutDialogState();
+}
+
+class _ClockOutDialogState extends State<_ClockOutDialog> {
+  final TextEditingController _controller = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Keterangan Kegiatan'),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          autofocus: true,
+          minLines: 3,
+          maxLines: 5,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            hintText: 'Tuliskan kegiatan yang dilakukan hari ini...',
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Keterangan kegiatan wajib diisi';
+            }
+            return null;
+          },
+        ),
+      ),
+      actions: [
+        CustomButton.text(
+          label: 'Batal',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        CustomButton.primary(
+          label: 'Clock Out',
+          fullWidth: false,
+          backgroundColor: _kClockBlue,
+          borderRadius: 8,
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              Navigator.of(context).pop(
+                _controller.text.trim(),
+              );
+            }
+          },
+        ),
+      ],
     );
   }
 }
