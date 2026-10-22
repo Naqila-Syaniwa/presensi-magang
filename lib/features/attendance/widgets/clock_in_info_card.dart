@@ -11,6 +11,7 @@ class ClockInInfoCard extends StatelessWidget {
     required this.statusText,
     required this.statusColor,
     required this.onConfirm,
+    this.warningMessage,
   });
 
   final String officeName;
@@ -19,6 +20,8 @@ class ClockInInfoCard extends StatelessWidget {
   final Color statusColor;
 
   final VoidCallback? onConfirm;
+
+  final String? warningMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +56,10 @@ class ClockInInfoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+            if (warningMessage != null) ...[
+              _WarningBox(message: warningMessage!),
+              const SizedBox(height: 12),
+            ],
             CustomButton(label: 'Konfirmasi Clock In', onPressed: onConfirm),
           ],
         ),
@@ -84,6 +91,42 @@ class _InfoItem extends StatelessWidget {
         const SizedBox(height: 2),
         Text(value, style: AppTextStyles.label.copyWith(color: valueColor)),
       ],
+    );
+  }
+}
+
+class _WarningBox extends StatelessWidget {
+  const _WarningBox({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 18,
+            color: AppColors.error,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message, 
+              style: AppTextStyles.caption.copyWith(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

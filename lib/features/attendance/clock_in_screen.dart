@@ -34,6 +34,7 @@ class _ClockInScreenState extends State<ClockInScreen>
 
   StreamSubscription<Position>? _positionSub;
   double? _accuracy;
+  bool _isMocked = false;
 
   LocationStatus? _status;
   bool _hasAsked = false;
@@ -59,6 +60,7 @@ class _ClockInScreenState extends State<ClockInScreen>
       _positionSub?.pause();
     } else if (state == AppLifecycleState.resumed) {
       _positionSub?.resume();
+      if (_status == LocationStatus.ready) _loadUserPosition(fit: false);
     }
   }
 
@@ -97,7 +99,10 @@ class _ClockInScreenState extends State<ClockInScreen>
     try {
       final pos = await _service.getCurrentPosition();
       if (!mounted) return;
-      setState(() => _userLatLng = LatLng(pos.latitude, pos.longitude));
+      setState(() {
+        _userLatLng = LatLng(pos.latitude, pos.longitude);
+        _isMocked = pos.isMocked;
+      });
       if (fit) _fitCamera();
     } catch (e) {
       debugPrint('Gagal mengambil posisi: $e');
@@ -211,6 +216,7 @@ class _ClockInScreenState extends State<ClockInScreen>
     setState(() {
       _userLatLng = LatLng(pos.latitude, pos.longitude);
       _accuracy = pos.accuracy;
+      _isMocked = pos.isMocked;
     });
   }
 
@@ -221,6 +227,7 @@ class _ClockInScreenState extends State<ClockInScreen>
       userLatitude: user.latitude,
       userLongitude: user.longitude,
       accuracyMeters: _accuracy ?? 0,
+      isMocked: _isMocked,
       officeLatitude: _office.latitude,
       officeLongitude: _office.longitude,
       radiusMeters: _radiusMeters,
@@ -236,6 +243,9 @@ class _ClockInScreenState extends State<ClockInScreen>
   ({String text, Color color}) _statusInfo(RadiusCheckResult? r) {
     if (r == null) {
       return (text: 'Menunggu lokasi', color: AppColors.textSecondary);
+    }
+    if (r.isMocked) {
+      return (text: 'Lokasi palsu', color: AppColors.error);
     }
     if (!r.accuracyOk) {
       return (
@@ -267,10 +277,18 @@ class _ClockInScreenState extends State<ClockInScreen>
 
                   return ClockInInfoCard(
                     officeName: AttendanceConfig.officeName,
-                    distanceText: r == null ? '-' : _formatDistance(r.distanceMeters),
+                    distanceText: r == null
+                        ? '-'
+                        : _formatDistance(r.distanceMeters),
                     statusText: info.text,
                     statusColor: info.color,
-                    onConfirm: () => Navigator.pop(context, true),
+                    onConfirm: _isMocked
+                        ? null
+                        : () => Navigator.pop(context, true),
+                    warningMessage: _isMocked
+                        ? 'Lokasi palsu (mock location) terdeteksi. '
+                              'Matikan aplikasi lokasi palsu, lalu coba lagi.'
+                        : null,
                   );
                 },
               ),
