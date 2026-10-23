@@ -8,6 +8,7 @@ import 'package:presensimagang/features/home/home_screen.dart';
 import 'package:presensimagang/features/onboarding/onboarding_screen.dart';
 import 'package:presensimagang/features/splash/splash_screen.dart';
 import 'package:presensimagang/features/attendance/live_attendance_screen.dart';
+import 'package:presensimagang/features/attendance/clock_in_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
             AppRoutes.home: (_) => const HomeScreen(),
             AppRoutes.liveAttendance: (_) =>
                 const LiveAttendanceScreen(),
+            AppRoutes.clockIn: (_) => const ClockInScreen(),
           },
         );
       },

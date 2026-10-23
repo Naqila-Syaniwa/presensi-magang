@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:presensimagang/core/app_colors.dart';
+import 'package:presensimagang/core/app_routes.dart';
 import 'package:presensimagang/features/attendance/attendance_history_screen.dart';
 import 'package:presensimagang/features/attendance/data/attendance_store.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_detail_sheet.dart';
 import 'package:presensimagang/features/attendance/widgets/attendance_log_section.dart';
 import 'package:presensimagang/features/attendance/widgets/clock_card.dart';
+import 'package:presensimagang/features/attendance/data/attendance_models.dart';
 import 'package:presensimagang/widgets/theme_x.dart';
 
 /// Halaman Live Attendance: header merah dengan jam realtime, ClockCard
@@ -40,6 +42,18 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
           backgroundColor: result.ok ? null : AppColors.error,
         ),
       );
+  }
+
+  Future<void> _handleClockIn() async {
+    if (_store.statusOn(DateTime.now()) != AttendanceStatus.notStarted) {
+      _show(_store.clockIn());
+      return;
+    }
+
+    final result = await Navigator.pushNamed(context, AppRoutes.clockIn);
+    if (!mounted || result != true) return;
+
+    _show(_store.clockIn());
   }
 
   void _openHistory() {
@@ -80,9 +94,9 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
                               date: now,
                               status: _store.statusOn(now),
                               statusText: _store.statusLabelOn(now),
-                              onClockIn: () => _show(_store.clockIn()),
+                              onClockIn: () => _handleClockIn(),
                               onClockOut: (activityNote) =>
-                              _show(_store.clockOutWithNote(activityNote)),
+                                  _show(_store.clockOutWithNote(activityNote)),
                               onToggleBreak: () => _show(_store.toggleBreak()),
                             ),
                           ),
