@@ -55,6 +55,9 @@ class LocationService {
     );
   }
 
+  Stream<ServiceStatus> serviceStatusStream() =>
+      Geolocator.getServiceStatusStream();
+
   Future<bool> openAppSettings() => Geolocator.openAppSettings();
 
   Future<bool> openLocationSettings() => Geolocator.openLocationSettings();

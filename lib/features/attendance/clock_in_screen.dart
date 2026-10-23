@@ -35,8 +35,10 @@ class _ClockInScreenState extends State<ClockInScreen>
   LatLng? _userLatLng;
 
   StreamSubscription<Position>? _positionSub;
+  StreamSubscription<ServiceStatus>? _serviceSub;
   double? _accuracy;
   bool _isMocked = false;
+  bool _locationFailed = false;
 
   LocationStatus? _status;
   bool _hasAsked = false;
@@ -45,12 +47,16 @@ class _ClockInScreenState extends State<ClockInScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _serviceSub = _service.serviceStatusStream().listen(
+      (_) => _refreshStatus(),
+    );
     _refreshStatus();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _serviceSub?.cancel();
     _mapController?.dispose();
     _stopTracking();
     super.dispose();
@@ -62,6 +68,7 @@ class _ClockInScreenState extends State<ClockInScreen>
       _positionSub?.pause();
     } else if (state == AppLifecycleState.resumed) {
       _positionSub?.resume();
+      _refreshStatus();
       if (_status == LocationStatus.ready) _loadUserPosition(fit: false);
     }
   }
@@ -99,6 +106,7 @@ class _ClockInScreenState extends State<ClockInScreen>
 
   Future<void> _loadUserPosition({bool fit = true}) async {
     try {
+      if (_locationFailed) setState(() => _locationFailed = false);
       final pos = await _service.getCurrentPosition();
       if (!mounted) return;
       setState(() {
@@ -109,6 +117,9 @@ class _ClockInScreenState extends State<ClockInScreen>
       if (fit) _fitCamera();
     } catch (e) {
       debugPrint('Gagal mengambil posisi: $e');
+      if (mounted && _userLatLng == null) {
+        setState(() => _locationFailed = true);
+      }
     }
   }
 
@@ -271,6 +282,13 @@ class _ClockInScreenState extends State<ClockInScreen>
       );
     }
     if (r == null) {
+      if (_locationFailed) {
+        return const ClockInNotice(
+          'Lokasi belum didapat. Pastikan GPS aktif dan sinyal baik, lalu '
+          'ketuk tombol lokasi di peta untuk mencoba lagi.',
+          ClockInNoticeTone.warning,
+        );
+      }
       return const ClockInNotice(
         'Sedang mencari lokasi Anda...',
         ClockInNoticeTone.info,
