@@ -88,7 +88,7 @@ class LocationPermissionView extends StatelessWidget {
           message:
               'Aplikasi tidak bisa meminta izin lagi. Buka pengaturan '
               'aplikasi, pilih Izin, lalu aktifkan Lokasi.',
-          buttonLabel: 'Buka Pengaturan',
+          buttonLabel: 'Buka pengaturan',
           onPressed: onOpenAppSettings,
         );
 
@@ -99,7 +99,7 @@ class LocationPermissionView extends StatelessWidget {
             icon: Icons.location_off_outlined,
             title: 'Izin lokasi diperlukan',
             message:
-                'Tanpa izin lokasi, Clock In tidak dapat diverifikasi.'
+                'Tanpa izin lokasi, Clock In tidak dapat diverifikasi. '
                 'Izinkan akses lokasi untuk melanjutkan.',
             buttonLabel: 'Coba lagi',
             onPressed: onRequest,

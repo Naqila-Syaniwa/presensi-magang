@@ -152,7 +152,17 @@ class _NoticeBox extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(style.icon, size: 18, color: style.color),
+          if(notice.tone == ClockInNoticeTone.info)
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: style.color,
+              ),
+            )
+          else
+            Icon(style.icon, size: 18, color: style.color),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

@@ -27,6 +27,14 @@ class _ClockInScreenState extends State<ClockInScreen>
     AttendanceConfig.officeLongitude,
   );
 
+  static final Set<Marker> _officeMarkers = {
+    const Marker(
+      markerId: MarkerId('office'),
+      position: _office,
+      infoWindow: InfoWindow(title: AttendanceConfig.officeName),
+    ),
+  };
+
   final LocationService _service = const LocationService();
 
   final double _radiusMeters = AttendanceConfig.defaultRadiusMeters;
@@ -363,7 +371,7 @@ class _ClockInScreenState extends State<ClockInScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Live Attendance')),
+      appBar: AppBar(title: const Text('Clock In')),
       body: Column(
         children: [
           Expanded(child: _buildMapArea()),
@@ -419,13 +427,7 @@ class _ClockInScreenState extends State<ClockInScreen>
             target: _office,
             zoom: 16,
           ),
-          markers: {
-            Marker(
-              markerId: const MarkerId('office'),
-              position: _office,
-              infoWindow: InfoWindow(title: AttendanceConfig.officeName),
-            ),
-          },
+          markers: _officeMarkers,
           circles: _buildCircles(),
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
