@@ -148,6 +148,7 @@ class AppTheme {
         fillColor: const Color(0xFF1E1E1E),
       ),
       cardTheme: base.cardTheme.copyWith(color: const Color(0xFF1E1E1E)),
+      dividerTheme: base.dividerTheme.copyWith(color: const Color(0xFF3A3A3A)),
       bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
         backgroundColor: const Color(0xFF1E1E1E),
       ),
