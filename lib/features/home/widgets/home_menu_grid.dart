@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/app_text_styles.dart';
-import 'package:presensimagang/features/home/data/menu_data.dart';
 import 'package:presensimagang/core/app_routes.dart';
+import 'package:presensimagang/features/home/data/menu_data.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 class HomeMenuGrid extends StatelessWidget {
   const HomeMenuGrid({super.key});
@@ -39,7 +39,7 @@ class _MenuTile extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         border: showTopDivider
-            ? const Border(top: BorderSide(color: AppColors.border))
+            ? Border(top: BorderSide(color: context.lineColor))
             : null,
       ),
       child: InkWell(
@@ -76,7 +76,7 @@ class _MenuTile extends StatelessWidget {
                   item.label,
                   maxLines: 1,
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textPrimary,
+                    color: context.colors.onSurface,
                     fontSize: 13,
                   ),
                 ),

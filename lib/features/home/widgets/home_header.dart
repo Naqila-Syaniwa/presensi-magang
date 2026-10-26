@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/home/data/home_user_data.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -30,11 +31,13 @@ class HomeHeader extends StatelessWidget {
             children: [
               Text(
                 '${_greeting(DateTime.now())},',
-                style: AppTextStyles.caption,
+                style: AppTextStyles.caption.copyWith(
+                  color: context.isDark ? context.mutedText : AppColors.textSecondary,
+                ),
               ),
               Text(
                 dummyUser.name,
-                style: AppTextStyles.h3,
+                style: AppTextStyles.h3.copyWith(color: context.colors.onSurface),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

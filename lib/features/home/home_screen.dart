@@ -5,6 +5,7 @@ import 'package:presensimagang/features/home/widgets/home_header.dart';
 import 'package:presensimagang/features/home/widgets/home_menu_grid.dart';
 import 'package:presensimagang/features/home/widgets/home_skeleton.dart';
 import 'package:presensimagang/features/home/widgets/promo_banner.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 import 'package:presensimagang/features/settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -109,6 +110,11 @@ class _PlaceholderTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text(title, style: AppTextStyles.h2));
+    return Center(
+      child: Text(
+        title, 
+        style: AppTextStyles.h2.copyWith(color: context.colors.onSurface),
+      ),
+    );
   }
 }
