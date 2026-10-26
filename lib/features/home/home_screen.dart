@@ -5,6 +5,7 @@ import 'package:presensimagang/features/home/widgets/home_header.dart';
 import 'package:presensimagang/features/home/widgets/home_menu_grid.dart';
 import 'package:presensimagang/features/home/widgets/home_skeleton.dart';
 import 'package:presensimagang/features/home/widgets/promo_banner.dart';
+import 'package:presensimagang/features/settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _PlaceholderTab(title: 'Employees'),
             _PlaceholderTab(title: 'Request'),
             _PlaceholderTab(title: 'Inbox'),
-            _PlaceholderTab(title: 'Account'),
+            SettingsScreen(),
           ],
         ),
       ),
