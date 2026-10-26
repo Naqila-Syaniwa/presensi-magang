@@ -6,6 +6,7 @@ import 'package:presensimagang/core/app_prefs.dart';
 import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/onboarding/onboarding_data.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -42,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -96,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   dotHeight: 8,
                   dotWidth: 8,
                   spacing: 8,
-                  activeDotColor: AppColors.primaryDark,
+                  activeDotColor: context.isDark ? AppColors.primary : AppColors.primaryDark,
                   dotColor: AppColors.textSecondary.withValues(alpha: 0.4),
                 ),
               ),
@@ -146,13 +147,13 @@ class _OnboardingPage extends StatelessWidget {
           Text(
             data.title,
             textAlign: TextAlign.center,
-            style: AppTextStyles.h2,
+            style: AppTextStyles.h2.copyWith(color: context.colors.onSurface),
           ),
           const SizedBox(height: 12),
           Text(
             data.description,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyLarge,
+            style: AppTextStyles.bodyLarge.copyWith(color: context.colors.onSurface),
           ),
           const Spacer(flex: 3),
         ],

@@ -33,7 +33,7 @@ class AppTheme {
       labelMedium: AppTextStyles.button,
       labelSmall: AppTextStyles.caption,
     );
-    
+
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(_radius),
     );
@@ -80,8 +80,13 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
+        hintStyle: AppTextStyles.bodyLarge.copyWith(
+          color: AppColors.textSecondary,
+        ),
         errorStyle: AppTextStyles.caption.copyWith(color: AppColors.error),
         border: inputBorder(AppColors.border),
         enabledBorder: inputBorder(AppColors.border),
@@ -93,16 +98,16 @@ class AppTheme {
         color: AppColors.surface,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.accent,
         unselectedItemColor: AppColors.textSecondary,
-        selectedLabelStyle: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500),
+        selectedLabelStyle: AppTextStyles.caption.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
         unselectedLabelStyle: AppTextStyles.caption,
         showUnselectedLabels: true,
       ),
@@ -113,11 +118,16 @@ class AppTheme {
       ),
     );
   }
-  
+
   static ThemeData get dark {
     final base = light;
+    const onSurface = Color(0xFFF5F5F5);
     return base.copyWith(
       brightness: Brightness.dark,
+      textTheme: base.textTheme.apply(
+        bodyColor: onSurface,
+        displayColor: onSurface,
+      ),
       colorScheme: ColorScheme.dark(
         primary: AppColors.action,
         onPrimary: AppColors.surface,
@@ -126,22 +136,19 @@ class AppTheme {
         error: AppColors.error,
         onError: AppColors.surface,
         surface: const Color(0xFF1E1E1E),
-        onSurface: const Color(0xFFF5F5F5),
+        onSurface: onSurface,
       ),
       scaffoldBackgroundColor: const Color(0xFF121212),
       appBarTheme: base.appBarTheme.copyWith(
         backgroundColor: const Color(0xFF1E1E1E),
-        foregroundColor: const Color(0xFFF5F5F5),
+        foregroundColor: onSurface,
       ),
       inputDecorationTheme: base.inputDecorationTheme.copyWith(
         filled: true,
         fillColor: const Color(0xFF1E1E1E),
       ),
-      cardTheme: base.cardTheme.copyWith(
-        color: const Color(0xFF1E1E1E),
-      ),
-      bottomNavigationBarTheme:
-          base.bottomNavigationBarTheme.copyWith(
+      cardTheme: base.cardTheme.copyWith(color: const Color(0xFF1E1E1E)),
+      bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
         backgroundColor: const Color(0xFF1E1E1E),
       ),
     );
