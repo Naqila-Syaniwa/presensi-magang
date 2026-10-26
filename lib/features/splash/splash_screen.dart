@@ -46,13 +46,21 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _goNext() async {
     final seenFuture = AppPrefs.hasSeenOnboarding();
+    final loggedInFuture = AppPrefs.isLoggedIn();
     await Future<void>.delayed(const Duration(milliseconds: 2500));
     final seen = await seenFuture;
+    final loggedIn = await loggedInFuture;
     if (!mounted) return;
-    Navigator.pushReplacementNamed(
-      context,
-      seen ? AppRoutes.login : AppRoutes.onboarding,
-    );
+
+    final String route;
+    if (loggedIn) {
+      route = AppRoutes.home;
+    } else if (seen) {
+      route = AppRoutes.login;
+    } else {
+      route = AppRoutes.onboarding;
+    }
+    Navigator.pushReplacementNamed(context, route);
   }
 
   @override
