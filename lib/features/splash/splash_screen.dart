@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:presensimagang/core/app_colors.dart';
 import 'package:presensimagang/core/app_routes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:presensimagang/core/app_prefs.dart';
+import 'package:presensimagang/widgets/theme_x.dart';
 
 // STUB: diganti implementasi sebenarnya
 class SplashScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _controller.forward();
-      _goNext();  
+      _goNext();
     });
   }
 
@@ -63,20 +63,23 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.pushReplacementNamed(context, route);
   }
 
+  Widget _buildLogo(BuildContext context) {
+    return SvgPicture.asset(
+      context.isDark
+          ? 'assets/images/logo-talenta-dark.svg'
+          : 'assets/images/logo-talenta.svg',
+      width: 200,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       body: Center(
         child: FadeTransition(
           opacity: _fade,
-          child: ScaleTransition(
-            scale: _scale,
-            child: SvgPicture.asset(
-              'assets/images/logo-talenta.svg',
-              width: 200,
-            ),
-          ),
+          child: ScaleTransition(scale: _scale, child: _buildLogo(context)),
         ),
       ),
     );
