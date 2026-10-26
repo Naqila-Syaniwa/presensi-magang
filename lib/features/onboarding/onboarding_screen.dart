@@ -5,8 +5,9 @@ import 'package:presensimagang/core/app_routes.dart';
 import 'package:presensimagang/core/app_prefs.dart';
 import 'package:presensimagang/core/app_text_styles.dart';
 import 'package:presensimagang/features/onboarding/onboarding_data.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:presensimagang/widgets/theme_x.dart';
+import 'package:presensimagang/widgets/custom_button.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -77,13 +78,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 maintainSize: true,
                 maintainAnimation: true,
                 maintainState: true,
-                child: TextButton(
+                child: CustomButton.text(
+                  label: 'Skip', 
                   onPressed: _finish,
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    textStyle: AppTextStyles.bodyLarge,
-                  ),
-                  child: const Text('Skip'),
+                  color: context.isDark ? context.mutedText : AppColors.textSecondary,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
@@ -107,16 +106,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 88,
             child: Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _isLast ? _finish : _next,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  textStyle: AppTextStyles.bodyLarge.copyWith(
-                    fontWeight: _isLast ? FontWeight.w700 : FontWeight.w500,
-                  ),
+              child: CustomButton.text(
+                  label: _isLast ? 'Login' : 'Next', 
+                  onPressed: _isLast ? _finish : _next,
+                  color: context.colors.onSurface,
+                  fontWeight: _isLast ? FontWeight.w700 : FontWeight.w500,
                 ),
-                child: Text(_isLast ? 'Login' : 'Next'),
-              ),
             ),
           ),
         ],
